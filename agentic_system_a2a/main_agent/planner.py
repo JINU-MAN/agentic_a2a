@@ -9,6 +9,7 @@ from .slack_tool import slack_post_message
 
 _STATE_KEY = "agentic_plan"
 _VALID_AGENTS = {"web_search", "paper", "sns", "slack"}
+_MAX_STEPS = 6
 
 
 def create_plan(goal: str, steps_json: str, tool_context: ToolContext) -> str:
@@ -41,9 +42,16 @@ def create_plan(goal: str, steps_json: str, tool_context: ToolContext) -> str:
     if not isinstance(new_steps_raw, list) or not new_steps_raw:
         return "create_plan failed: steps_json must be a non-empty JSON array"
 
-    # Preserve completed steps from existing plan (replan context)
     existing = tool_context.state.get(_STATE_KEY) or {}
     completed = [s for s in existing.get("steps", []) if s.get("status") == "done"]
+    if len(completed) + len(new_steps_raw) > _MAX_STEPS:
+        return (
+            f"create_plan failed: total steps ({len(completed)} completed + "
+            f"{len(new_steps_raw)} new) exceeds the maximum of {_MAX_STEPS}. "
+            "Reduce the number of steps."
+        )
+
+    # Preserve completed steps from existing plan (replan context)
 
     new_steps = []
     for i, raw in enumerate(new_steps_raw):
@@ -139,6 +147,8 @@ def execute_plan_step(tool_context: ToolContext) -> str:
     done = [s for s in steps if s["status"] == "done"]
     pending = [s for s in steps if s["status"] == "pending"]
 
+    failed = result.startswith("Step execution failed:")
+
     lines = [f"Step [{step['id']}] done — {step['description']}", "", "Result:", result]
 
     if done:
@@ -150,7 +160,8 @@ def execute_plan_step(tool_context: ToolContext) -> str:
         lines += ["", f"── Remaining ({len(pending)}) ──"]
         for s in pending:
             lines.append(f"  [{s['id']}] {s['description']}  (agent: {s['agent']})")
-        lines.append("\nCall execute_plan_step to continue, or create_plan to replan.")
+        if failed:
+            lines.append("\nThis step failed. Call create_plan to replan the remaining steps if needed.")
     else:
         lines.append("\nAll steps completed. Synthesize the results and provide the final answer.")
 
