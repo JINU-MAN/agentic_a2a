@@ -76,8 +76,8 @@ TAVILY_API_KEY=발급받은_Tavily_API_키
 | `GOOGLE_API_KEY` | Gemini 모델 호출에 사용 | https://aistudio.google.com/app/apikey |
 | `TAVILY_API_KEY` | 웹 검색 기능에 사용 | https://app.tavily.com |
 | `SLACK_BOT_TOKEN` | Slack 메시지 전송 (선택) | Slack App 관리 페이지 |
-| `MAIN_AGENT_MODEL` | MainAgent 모델명 (기본값: `gemini-2.0-flash`) | — |
-| `WORKER_AGENT_MODEL` | 워커 에이전트 모델명 (기본값: `gemini-2.0-flash`) | — |
+| `MAIN_AGENT_MODEL` | MainAgent 모델명 (기본값: `gemini-2.5-flash-lite`) | — |
+| `WORKER_AGENT_MODEL` | 워커 에이전트 모델명 (기본값: `gemini-2.5-flash-lite`) | — |
 
 ---
 
